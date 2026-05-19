@@ -2,6 +2,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import os
+import json
 import tempfile
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
@@ -28,9 +29,11 @@ def get_calendar_service():
     creds = None
 
     # token.json が存在する場合はそれを使用
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file(
-            "token.json",
+    token_json = os.getenv("GOOGLE_TOKEN")
+    
+    if token_json:
+        creds = Credentials.from_authorized_user_info(
+            json.loads(token_json),
             SCOPES
         )
 
