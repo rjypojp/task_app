@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>タスク編集</title>
+</head>
+<body>
+    <h1>タスク編集</h1>
+    
+    <form method="POST" action="/edit/{{ id }}">
+
+        <p>タイトル</p>
+        <input type="text" name="title" value="{{ task }}">
+
+        <p>締切</p>
+        <input type="date" name="deadline" value="{{ deadline }}">
+
+        <p>補足コメント</p>
+        <input type="text" name="comment" value="{{ comment }}">
+
+        <br><br>
+        <button type="submit">保存</button>
+    </form>
+    <a href="/">戻る</a>
+</body>
+</html>    

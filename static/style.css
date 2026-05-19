@@ -1,0 +1,60 @@
+
+        .red {
+            color: red;
+        }
+
+        .orange {
+            color: orange;
+        }
+
+        .black {
+            color: black;
+        }
+
+        .gray {
+            color: gray;
+        }
+
+    :root {
+        --main-green: #2e7d32; /* メインの深い緑 */
+        --light-green: #e8f5e9; /* 背景の薄い緑 */
+    }
+    
+    /* 背景 */
+    body {
+        background-color: var(--light-green);
+    }
+
+    /* 上のバー */
+    .navbar-custom {
+        background-color: var(--main-green);
+    }
+
+    /* メインボタン */
+    .btn-custom {
+        background-color: var(--main-green);
+        color:white
+    }
+
+    /* マウスを乗せたとき */
+    .btn-custom:hover {
+        background-color: #256428;
+    }
+
+    /* タイトル */
+    .title-green {
+        color: var(--main-green);
+    }
+    
+    #calendar {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    form input {
+        border-radius: 20px;
+    }
+
+    form button {
+        border-radius: 20px;
+    }

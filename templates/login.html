@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ログイン</title>
+</head>
+<body>
+    
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul style="color: red;">
+      {% for message in messages %}
+        <li>{{ message  }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<h1>ログイン</h1>
+
+<form method="POST">
+
+    <label>ユーザー名:</label>
+    <input type="text" name="username" required>
+    <br><br>
+
+    <label>パスワード:</label>
+    <input type="password" name="password" required>
+    <br><br>
+
+    <button type="submit">ログイン</button>
+
+</form>
+
+<p>
+    アカウントをお持ちでない方は
+    <a href="/register">新規登録はこちら</a>
+</p>
+</body>
+</html>
