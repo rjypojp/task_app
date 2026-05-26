@@ -7,6 +7,14 @@
 
 <h1>ユーザー登録</h1>
 
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color:red;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 <form method="POST">
 
     <label>ユーザー名</label>
@@ -20,9 +28,10 @@
     <button type="submit">登録</button>
 
 </form>
+
 <p>
     すでにアカウントをお持ちの方は
-    <a href="/login">ログインはこちら</a>
+    <a href="{{ url_for('auth.login') }}">ログインはこちら</a>
 </p>
 </body>    
 </html>

@@ -20,10 +20,12 @@ Flaskを使ったタスク管理アプリです。
 
 - Python
 - Flask
-- SQLite
+- SQLite (開発初期)
+- PostgreSQL (本番環境)
 - HTML / CSS
 - OpenWeather API
 - Google Calendar API
+- Render
 
 ---
 
@@ -32,6 +34,18 @@ Flaskを使ったタスク管理アプリです。
 ```bash
 git clone <リポジトリURL>
 cd task_app
+
+python -m venv venv
+```
+
+
+Windowsの場合:
+
+```bash
+venv\Scripts\activate
+```
+
+```bash
 pip install -r requirements.txt
 python app.py
 ``` 
@@ -45,6 +59,7 @@ python app.py
 ```env
 SECRET_KEY=your_secret_key
 OPENWEATHER_API_KEY=your_api_key
+DATABASE_URL=your_database_url
 ```
 ※ `your_secret_key` や `your_api_key` は各自の値に置き換えてください。
 
@@ -54,9 +69,11 @@ OPENWEATHER_API_KEY=your_api_key
 
 - 「実際に使いやすいか」を意識して設計しました
 - 天気APIとカレンダーを組み合わせて、日常で役立つ機能を追加しました
-- Googleカレンダーと連携し、予定管理をしやすくしました。
+- Googleカレンダーと連携し、予定管理をしやすくしました
 - タスクに補足コメントを追加できるようにし、情報管理をしやすくしました
 - パスワードはハッシュ化し、セキュリティ面も考慮しました
+- SQLiteからPostgreSQLへ移行し、本番環境を意識したDB構成にしました
+- 環境変数を利用してAPIキーやDB情報を安全に管理しました
 - ChatGPTを活用しつつ、自分で理解しながら実装・ノートに整理して進めました
 
 ---
@@ -68,9 +85,3 @@ OPENWEATHER_API_KEY=your_api_key
 https://task-app-t4xs.onrender.com
 
 ※ Renderの無料プランを利用しているため、初回アクセス時は起動まで30秒ほどかかる場合があります。
-
----
-
-## ローカル実行
-
-http://127.0.0.1:5000

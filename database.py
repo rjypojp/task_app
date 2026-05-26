@@ -1,16 +1,32 @@
-import sqlite3
+import os
+from flask import g
+import psycopg2
+from dotenv import load_dotenv
 from datetime import datetime
 
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+
 DB_NAME = "tasks.db"
+DB_PATH = "test.db" if os.getenv("TESTING") else "task.db"
 NO_DEADLINE_DAYS = 999
 DEFAULT_CITY = "Utsunomiya"
 
 
 
 def get_db():
-    
-    conn = sqlite3.connect(DB_NAME)
-    return conn
+    if "db" not in g:
+        g.db = psycopg2.connect(DATABASE_URL)
+    return g.db
+
+def close_db(e=None):
+    db = g.pop("db", None)
+    if db:
+        db.close()
+        
+
 
 def init_db():
     conn = get_db()
@@ -18,9 +34,9 @@ def init_db():
     
     c.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             title TEXT NOT NULL,
-            user TEXT,
+            username TEXT,
             deadline TEXT,
             comment TEXT,
             done INTEGER DEFAULT 0,
@@ -30,7 +46,7 @@ def init_db():
     
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             username TEXT UNIQUE,
             password TEXT,
             city TEXT
@@ -38,11 +54,10 @@ def init_db():
     """)
     
     conn.commit()
-    conn.close()
     
     print("DB 初期化完了！")
 
-def get_tasks(user):
+def get_tasks(username):
     
     conn = get_db()
     c = conn.cursor()
@@ -50,13 +65,11 @@ def get_tasks(user):
     c.execute("""
         SELECT id, title, deadline, done, comment
         FROM tasks
-        WHERE user=?
+        WHERE username=%s
         ORDER BY deadline IS NULL, deadline
-    """, (user,))
+    """, (username,))
     
     rows = c.fetchall()
-    
-    conn.close()
     
     tasks = []
     
@@ -92,27 +105,26 @@ def get_tasks(user):
     
     return tasks
 
-def delete_task(id, user):
+def delete_task(id, username):
     
     conn = get_db()
     c = conn.cursor()
     
     c.execute(
-        "DELETE FROM tasks WHERE id=? AND user=?",
-        (id,user)
+        "DELETE FROM tasks WHERE id=%s AND username=%s",
+        (id,username)
     )
     
     conn.commit()
-    conn.close()
 
-def toggle_task(id,user):
+def toggle_task(id,username):
     
     conn = get_db()
     c = conn.cursor()
 
     c.execute(
-        "SELECT done FROM tasks WHERE id=? AND user=?", 
-        (id, user)
+        "SELECT done FROM tasks WHERE id=%s AND username=%s", 
+        (id, username)
     )
     
     row = c.fetchone()
@@ -126,16 +138,15 @@ def toggle_task(id,user):
         c.execute(
             """
             UPDATE tasks
-            SET done=?
-            WHERE id=? AND user=?
+            SET done=%s
+            WHERE id=%s AND username=%s
             """, 
-            (new_done, id, user)
+            (new_done, id, username)
         )
 
     conn.commit()
-    conn.close()
 
-def get_task_by_id(id, user):
+def get_task_by_id(id, username):
     
     conn = get_db()
     c = conn.cursor()
@@ -144,18 +155,16 @@ def get_task_by_id(id, user):
         """
         SELECT title, deadline, comment, google_event_id
         FROM tasks
-        WHERE id=? AND user=?
+        WHERE id=%s AND username=%s
         """,
-        (id, user)
+        (id, username)
     )
     
     task = c.fetchone()
     
-    conn.close()
-    
     return task
 
-def update_task(id, user, title, deadline, comment):
+def update_task(id, username, title, deadline, comment):
     
     conn = get_db()
     c = conn.cursor()
@@ -163,16 +172,15 @@ def update_task(id, user, title, deadline, comment):
     c.execute(
         """
         UPDATE tasks
-        SET title=?, deadline=?, comment=?
-        WHERE id=? AND user=?
+        SET title=%s, deadline=%s, comment=%s
+        WHERE id=%s AND username=%s
         """,
-        (title, deadline, comment, id, user)
+        (title, deadline, comment, id, username)
     )
     
     conn.commit()
-    conn.close()
     
-def add_task(title, user, deadline, comment, google_event_id=None):
+def add_task(title, username, deadline, comment, google_event_id=None):
     
     conn = get_db()
     c = conn.cursor()
@@ -180,41 +188,37 @@ def add_task(title, user, deadline, comment, google_event_id=None):
     c.execute(
         """
         INSERT INTO tasks
-        (title, user, deadline, comment, google_event_id)
-        VALUES (?, ?, ?, ?, ?)
+        (title, username, deadline, comment, google_event_id)
+        VALUES (%s, %s, %s, %s, %s)
         """,
-        (title, user, deadline, comment, google_event_id)
+        (title, username, deadline, comment, google_event_id)
     )
         
     conn.commit()
-    conn.close()
 
-def update_city(user, city):
+def update_city(username, city):
     
     conn = get_db()
     c = conn.cursor()
     
     c.execute(
-        "UPDATE users SET city=? WHERE username=?",
-        (city, user)
+        "UPDATE users SET city=%s WHERE username=%s",
+        (city, username)
     )
     
     conn.commit()
-    conn.close()
     
-def get_city(user):
+def get_city(username):
     
     conn = get_db()
     c = conn.cursor()
     
     c.execute(
-        "SELECT city FROM users WHERE username=?",
-        (user, )
+        "SELECT city FROM users WHERE username=%s",
+        (username, )
     )
     
     row = c.fetchone()
-    
-    conn.close()
     
     if row and row[0]:
         return row[0]
@@ -229,13 +233,12 @@ def create_user(username, hashed_password):
     c.execute(
         """
         INSERT INTO users (username, password)
-        VALUES (?, ?)
+        VALUES (%s, %s)
         """,
         (username, hashed_password)
     )
     
     conn.commit()
-    conn.close()
 
 def get_user_by_username(username):
     
@@ -245,17 +248,15 @@ def get_user_by_username(username):
     c.execute(
         """
         SELECT * FROM users
-        WHERE  username=?
+        WHERE  username=%s
         """,
         (username,)         
     )    
     user = c.fetchone()
     
-    conn.close()
-    
     return user
 
-def get_google_event_id(id, user):
+def get_google_event_id(id, username):
     conn = get_db()
     c = conn.cursor()
     
@@ -263,14 +264,12 @@ def get_google_event_id(id, user):
         """
         SELECT google_event_id
         FROM tasks
-        WHERE id=? AND user=?
+        WHERE id=%s AND user=%s
         """,
-        (id, user)
+        (id, username)
     )
     
     row = c.fetchone()
-    
-    conn.close()
     
     if row:
         return row[0]

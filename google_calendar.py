@@ -1,55 +1,47 @@
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 import os
 import json
-import tempfile
+from dotenv import load_dotenv
+load_dotenv()
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 def get_calendar_service():
     credentials_json = os.getenv("GOOGLE_CREDENTIALS")
-    token_json = os.getenv("GOOGLE_TOKEN")
-    
+    token_path = os.getenv("GOOGLE_TOKEN")
+
     if not credentials_json:
         raise ValueError("GOOGLE_CREDENTIALS is not set.")
 
-    if not token_json:
+    if not token_path:
         raise ValueError("GOOGLE_TOKEN is not set")
-    
-    with tempfile.NamedTemporaryFile(
-        mode="w",
-        delete=False,
-        suffix=".json",
-        encoding="utf-8"
-    ) as f:
-        f.write(credentials_json)
-        temp_path = f.name
+
+    with open(token_path, "r") as f:
+        creds_data = json.load(f)
 
     creds = Credentials.from_authorized_user_info(
-        json.loads(token_json),
+        creds_data,
         SCOPES
     )
 
+    # トークン更新
     if creds.expired and creds.refresh_token:
-        from google.auth.transport.requests import Request
         creds.refresh(Request())
-    
+
     service = build("calendar", "v3", credentials=creds)
     return service
-    
+
+
 def add_event(title, due_date):
     service = get_calendar_service()
 
     event = {
         "summary": title,
-        "start": {
-            "date": due_date
-        },
-        "end": {
-            "date": due_date
-        }
+        "start": {"date": due_date},
+        "end": {"date": due_date}
     }
 
     created_event = service.events().insert(
