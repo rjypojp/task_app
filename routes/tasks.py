@@ -14,6 +14,7 @@ from database import (
     add_task,
     update_city,
     get_city,
+    get_google_event_id,
     delete_task,
     toggle_task,
     get_task_by_id,
@@ -24,11 +25,11 @@ from weather import get_weather
 from holiday import get_holidays
 from calendar_utils import create_events
 
-# from google_calendar import (
-#     add_event,
-#     update_event,
-#     delete_event
-# )
+from google_calendar import (
+    add_event,
+    update_event,
+    delete_event
+)
 import os
 
 from utils import require_login, validate_task
@@ -76,7 +77,7 @@ def index():
         event_id = None
         
         if deadline and not current_app.config.get("TESTING"):
-            pass
+            event_id = add_event(title, deadline)
         
         add_task(
             title,
@@ -129,6 +130,10 @@ def delete(id):
     if not user:
         return redirect(url_for("auth.login"))
     
+    event_id = get_google_event_id(id, user)
+    
+    if event_id:
+        delete_event(event_id)
     
     delete_task(id,user)
     
@@ -166,10 +171,8 @@ def edit(id):
         )
 
         if event_id and new_deadline:
-            # update_event(event_id, new_title, new_deadline)
-        
-            pass
-        
+            update_event(event_id, new_title, new_deadline)
+    
         return redirect(url_for("tasks.index"))
     
     task = get_task_by_id(id, user)
