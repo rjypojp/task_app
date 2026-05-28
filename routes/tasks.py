@@ -132,6 +132,8 @@ def delete(id):
     
     event_id = get_google_event_id(id, user)
     
+    print("EVENT_ID:", event_id)
+    
     if event_id:
         delete_event(event_id)
     
