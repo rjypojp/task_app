@@ -76,8 +76,8 @@ def index():
         
         event_id = None
         
-        # if deadline and not current_app.config.get("TESTING"):
-        #     event_id = add_event(title, deadline)
+        if deadline and not current_app.config.get("TESTING"):
+            pass
         
         add_task(
             title,
