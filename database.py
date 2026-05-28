@@ -264,7 +264,7 @@ def get_google_event_id(id, username):
         """
         SELECT google_event_id
         FROM tasks
-        WHERE id=%s AND user=%s
+        WHERE id=%s AND username=%s
         """,
         (id, username)
     )
