@@ -137,6 +137,8 @@ def delete(id):
     
         pass
     
+    delete_task(id,user)
+    
     return redirect(url_for("tasks.index"))
    
 @tasks_bp.route("/edit/<int:id>", methods=["GET", "POST"])
@@ -157,7 +159,7 @@ def edit(id):
         
         if error:
             flash(error)
-            return redirect(url_for("edit", id=id))
+            return redirect(url_for("tasks.edit", id=id))
         
         task = get_task_by_id(id, user)
         event_id = task[3]
