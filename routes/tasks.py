@@ -14,7 +14,6 @@ from database import (
     add_task,
     update_city,
     get_city,
-    get_google_event_id,
     delete_task,
     toggle_task,
     get_task_by_id,
@@ -130,12 +129,6 @@ def delete(id):
     if not user:
         return redirect(url_for("auth.login"))
     
-    event_id = get_google_event_id(id, user)
-    
-    if event_id:
-        # delete_event(event_id)
-    
-        pass
     
     delete_task(id,user)
     
