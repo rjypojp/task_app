@@ -174,6 +174,8 @@ def edit(id):
             # update_event(event_id, new_title, new_deadline)
         
             pass
+        
+        return redirect(url_for("tasks.index"))
     
     task = get_task_by_id(id, user)
     
