@@ -10,20 +10,16 @@ SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 
 def get_calendar_service():
-    credentials_json = os.getenv("GOOGLE_CREDENTIALS")
-    token_path = os.getenv("GOOGLE_TOKEN")
 
-    if not credentials_json:
-        raise ValueError("GOOGLE_CREDENTIALS is not set.")
-
-    if not token_path:
-        raise ValueError("GOOGLE_TOKEN is not set")
-
-    with open(token_path, "r") as f:
-        creds_data = json.load(f)
+    token_json = os.getenv("GOOGLE_TOKEN_JSON")
+    
+    if not token_json:
+        raise ValueError("GOOGLE_TOKEN_JSON is not set")
+    
+    token_data = json.loads(token_json)
 
     creds = Credentials.from_authorized_user_info(
-        creds_data,
+        token_data,
         SCOPES
     )
 
@@ -32,6 +28,7 @@ def get_calendar_service():
         creds.refresh(Request())
 
     service = build("calendar", "v3", credentials=creds)
+    
     return service
 
 
