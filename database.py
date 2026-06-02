@@ -17,10 +17,14 @@ DEFAULT_CITY = "Utsunomiya"
 
 
 def get_db():
-    if "db" not in g:
-        g.db = psycopg2.connect(DATABASE_URL)
-    return g.db
+    db = g.get("db")
 
+    if db is None or db.closed != 0:
+        db = psycopg2.connect(DATABASE_URL)
+        g.db = db
+    
+    return db
+    
 def close_db(e=None):
     db = g.pop("db", None)
     if db:
@@ -110,26 +114,32 @@ def delete_task(id, username):
     conn = get_db()
     c = conn.cursor()
     
-    c.execute(
+    try:
+        c.execute(
         "DELETE FROM tasks WHERE id=%s AND username=%s",
-        (id,username)
-    )
+        (id,username))
     
-    conn.commit()
+        conn.commit()
+    
+    except Exception:
+        conn.rollback()
+        raise
 
 def toggle_task(id,username):
     
     conn = get_db()
     c = conn.cursor()
 
-    c.execute(
+    try:
+        c.execute(
         "SELECT done FROM tasks WHERE id=%s AND username=%s", 
         (id, username)
-    )
+        )
     
-    row = c.fetchone()
+        row = c.fetchone()
 
-    if row:
+        if not row:
+            return
         
         done = row[0]
         
@@ -144,7 +154,11 @@ def toggle_task(id,username):
             (new_done, id, username)
         )
 
-    conn.commit()
+        conn.commit()
+    
+    except Exception:
+        conn.rollback()
+        raise
 
 def get_task_by_id(id, username):
     
@@ -230,15 +244,17 @@ def create_user(username, hashed_password):
     conn = get_db()
     c = conn.cursor()
     
-    c.execute(
-        """
-        INSERT INTO users (username, password)
-        VALUES (%s, %s)
-        """,
-        (username, hashed_password)
-    )
+    try:
+        c.execute("""
+            INSERT INTO users (username, password)
+            VALUES (%s, %s)
+        """,(username, hashed_password))
     
-    conn.commit()
+        conn.commit()
+    
+    except Exception:
+        conn.rollback()
+        raise
 
 def get_user_by_username(username):
     

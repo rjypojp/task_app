@@ -3,7 +3,8 @@ import pytest
 from app import app
 from database import init_db
 import threading
-
+import uuid
+import psycopg2
 
 
 @pytest.fixture
@@ -12,17 +13,13 @@ def client():
     
     with app.test_client() as client:
         
-        with client.session_transaction() as session:
-            session["user"] = "testuser"
-                
         yield client
         
 @pytest.fixture(autouse=True)
 def setup_db(): 
-    from database import init_db
-
-    init_db()
-    yield
+    with app.app_context():
+        init_db()
+        yield
 
 
 def test_login_page(client):
@@ -38,19 +35,29 @@ def test_task_create(client):
             "deadline": "2026-01-01",
             "comment": ""
       },
-      follow_redirects=True
+      follow_redirects=False
     )
 
     assert response.status_code == 302
 
 
 def test_empty_title(client):
+    client.post("/register", data={
+        "username": "testuser",
+        "password": "password123"
+    }, follow_redirects=True)
+
+    client.post("/login", data={
+        "username": "testuser",
+        "password": "password123"
+    }, follow_redirects=True)
+    
     response = client.post("/", data={
         "title": "",
         "deadline": "2026-01-01",
         "comment": ""
-    })
-
+    }, follow_redirects=True)
+    
     assert "タイトルを入力してください。".encode("utf-8") in response.data
     
 def test_login_fail(client):
@@ -73,19 +80,20 @@ def test_login_success(client):
     
     from database import create_user
     from werkzeug.security import generate_password_hash
-    import sqlite3
+    
+    username = f"testuser_{uuid.uuid4()}"
     
     try:
         with app.app_context():
             create_user(
-                "testuser",
+                username,
                 generate_password_hash("password123")
             )
-    except sqlite3.IntegrityError:
+    except psycopg2.IntegrityError:
         pass
     
     response = client.post("/login", data={
-        "username": "testuser",
+        "username": username,
         "password": "password123"
     })
     
@@ -100,7 +108,7 @@ def test_register_duplicate_user(client):
     response = client.post("/register", data={
         "username": "duplicate_user",
         "password": "pasword123"
-    })
+    }, follow_redirects=True)
     
     assert "このユーザー名は既に使われています。" in response.data.decode("utf-8")
 
@@ -127,13 +135,15 @@ def test_task_create_requires_login(client):
 
 def test_task_create_success(client):
     
+    username = f"testuser_{uuid.uuid4()}"
+    
     client.post("/register", data={
-        "username": "testuser",
+        "username": username,
         "password": "password123"
     })
     
     client.post("/login", data={
-        "username": "testuser",
+        "username": username,
         "password": "password123"
     })
     
@@ -189,13 +199,15 @@ def test_concurrent_task_create():
 
             with app.test_client() as client:
 
+                username = f"testuser_{uuid.uuid4()}"
+                
                 client.post("/register", data={
-                    "username": f"user{i}",
+                    "username": username,
                     "password": "password123"
                 })
 
                 client.post("/login", data={
-                    "username": f"user{i}",
+                    "username": username,
                     "password": "password123"
                 })
 
@@ -226,6 +238,16 @@ def test_concurrent_task_create():
     assert len(errors) == 0
 
 def test_add_task_empty_title(client):
+    
+    client.post("/register", data={
+        "username": "testuser",
+        "password": "password123"
+    })
+    
+    client.post("/login", data={
+        "username": "testuser",
+        "password": "password123"
+    })
     
     response = client.post(
         "/",

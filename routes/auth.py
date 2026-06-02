@@ -1,3 +1,4 @@
+import psycopg2
 from flask import (
     Blueprint,
     render_template,
@@ -59,8 +60,9 @@ def register():
             create_user(username, hashed_password)
             return redirect(url_for("tasks.index"))
         
-        except sqlite3.IntegrityError:
-            return "このユーザー名は既に使われています。"
+        except psycopg2.IntegrityError:
+            flash("このユーザー名は既に使われています。")
+            return redirect(url_for("auth.register"))
         
     return render_template("register.html")
 

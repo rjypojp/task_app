@@ -76,8 +76,17 @@ def index():
         
         event_id = None
         
+        if not title:
+            flash("タイトルを入力してください。")
+            return redirect(url_for("tasks.index"))
+        
         if deadline and not current_app.config.get("TESTING"):
-            event_id = add_event(title, deadline)
+            
+            try:
+                event_id = add_event(title, deadline)
+                
+            except Exception as e:
+                print(e) 
         
         add_task(
             title,
@@ -87,6 +96,7 @@ def index():
             event_id
         )
         return redirect(url_for("tasks.index"))
+
     
     # =========================
     # 天気情報取得

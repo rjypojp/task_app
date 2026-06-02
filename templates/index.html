@@ -10,6 +10,16 @@
 </head>
 <body>
 
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-danger m-3">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 <nav class="navbar navbar-custom position-relative">
     <div class="container-fluid px-3 d-flex align-items-center" style="height: 70px;">
 
