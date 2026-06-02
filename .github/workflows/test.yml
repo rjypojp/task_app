@@ -32,6 +32,10 @@ jobs:
       run: |
         pwd
         python -c "import app; print(app)"
+
+    - name: Debug env
+      run: |
+        python -c "import os; print(os.getenv('DATABASE_URL'))"    
     
     - name: Run Tests
       run: |
