@@ -13,7 +13,8 @@ jobs:
   test:
 
     runs-on: ubuntu-latest
-
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
 
     - name: Checkout
@@ -27,6 +28,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
+
+    - name: Install Playwright browsers
+      run: |
+        playwright install    
     
     - name: Debug import
       run: |
