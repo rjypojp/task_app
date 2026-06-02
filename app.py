@@ -8,7 +8,12 @@ from routes.tasks import tasks_bp
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")
+
+secret = os.getenv("SECRET_KEY")
+if not secret:
+    raise RuntimeError("SECRET_KEY is not set")
+
+app.secret_key = secret
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(tasks_bp)
