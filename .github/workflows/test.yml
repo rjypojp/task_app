@@ -28,15 +28,11 @@ jobs:
       run: |
         pip install -r requirements.txt
     
-    - name: Debug
+    - name: Debug import
       run: |
         pwd
-        ls -la
-        find . -name "app.py"
-        python -c "import sys; print(sys.path)"
         python -c "import app; print(app)"
     
     - name: Run Tests
       run: |
-        export PYTHONPATH=$PWD
         pytest
