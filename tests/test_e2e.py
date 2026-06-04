@@ -38,7 +38,7 @@ def test_add_task():
     
     with sync_playwright() as p:
         
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         
         page = browser.new_page()
         
@@ -67,7 +67,7 @@ def test_add_task():
         
 def test_delete_task():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         
         #ログイン
@@ -106,7 +106,7 @@ def test_delete_task():
         
 def test_edit_task():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
         # ログイン
@@ -151,7 +151,7 @@ def test_edit_task():
         
 def test_task_list():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         
         # ログイン
