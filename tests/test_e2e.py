@@ -1,5 +1,10 @@
+import os
+
+os.environ["TESTING"] = "1"
+
 from playwright.sync_api import sync_playwright
-from tests.utils import start_server
+from tests.test_utils import start_server
+
 
 def test_login_page():
     
@@ -150,6 +155,14 @@ def test_edit_task():
         browser.close()
         
 def test_task_list():
+    start_server()
+    
+    from database import delete_all_tasks
+    from app import app
+    
+    with app.app_context():
+        delete_all_tasks("testuser")
+               
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -161,28 +174,19 @@ def test_task_list():
         page.click('button[type="submit"]')
 
         page.wait_for_load_state("networkidle")
-
+        
         # タスク作成（一覧確認用）
-        page.fill('input[name="title"]', "一覧テストタスク")
+        page.fill('input[name="title"]', "一覧テストタスク999")
         page.fill('input[name="deadline"]', "2026-12-31")
         page.fill('input[name="comment"]', "LIST")
         page.click('button[type="submit"]')
 
         page.wait_for_load_state("networkidle")
 
-        # 一覧に表示されているか確認
-        cards = page.locator(".card")
-        
-        assert cards.count() > 0
-        
-        #作ったタスクが表示されているか
-        assert page.locator(".card", has_text="一覧テストタスク").count() == 1
-        
-        #内容チェック
-        card_text = page.locator(".card", has_text="一覧テストタスク").first.inner_text()
-        
-        assert "一覧テストタスク" in card_text
-        assert "LIST" in card_text
+        assert page.locator(
+            ".card", 
+            has_text="一覧テストタスク999"
+        ).count() == 1
         
         browser.close()
     

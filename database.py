@@ -291,3 +291,13 @@ def get_google_event_id(id, username):
         return row[0]
     else:
         return None
+    
+def delete_all_tasks(username):
+    conn = get_db()
+    c = conn.cursor()
+    
+    c.execute(
+        "DELETE FROM tasks WHERE username=%s",
+        (username,)
+    )
+    conn.commit()
